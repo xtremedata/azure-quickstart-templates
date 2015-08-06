@@ -8,7 +8,7 @@ Create the dbX cluster (Please be patient - this is preview of deployment on Azu
 
 NOTE: You may need to be already logged into your Azure account before hitting the below "deploy" button in order for the Azure deployment screen to come up.
 
-[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fxtremedata%2Fazure-quickstart-templates%2Fmaster%2Fxtremedata-dbx-cluster-centos%2Fazuredeploy.json) 
+[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fxtremedata%2Fazure-quickstart-templates%2Fdbx-san%2Fxtremedata-dbx-cluster-centos%2Fazuredeploy.json) 
 
 
 ##Requirements
@@ -49,4 +49,5 @@ _For web management console please accept the secure certificate exception when 
 *   please review the full documentation on our website
 
 ##For more information - visit our website
-[![XtremeData Inc](https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/master/xtremedata-dbx-cluster-centos/XtremeDataLogo_woTag_RGB_sm.png)](http://xtremedata.com) 
+[![XtremeData Inc](https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/master/xtremedata-dbx-cluster-centos/XtremeDataLogo_woTag_RGB_sm.png)](http://xtremedata.com)
+
