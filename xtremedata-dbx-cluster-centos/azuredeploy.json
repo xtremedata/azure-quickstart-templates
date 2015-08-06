@@ -59,7 +59,7 @@
   },
   "variables": {
     "suffix": "",
-    "srcImage": "https://dbxpub.blob.core.windows.net:443/imgs/dbx-v4b-2-os-2015-07-15.vhd?se=2015-10-15T00%3A00%3A00Z&sp=r&sv=2014-02-14&sr=b&sig=iNDInvOf7Qab1iqAhISgadD3TEKGgtZl9kR9ZsHXDlQ%3D",
+    "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4b-3-os-2015-08-05.vhd?sv=2014-02-14&sr=c&sig=ERSa1m1Sgfq%2BAj9TytDrxnpfG7rakNGn0s%2FgUxHWUzY%3D&st=2015-08-06T05%3A00%3A00Z&se=2016-08-14T05%3A00%3A00Z&sp=rl",
     "suffixes": [
       "",
       "1",
@@ -93,7 +93,7 @@
     "osImage": "[concat('http://',parameters('newStorageAccountName'),variables('suffix'),'.blob.core.windows.net/img/os-disk-img.vhd')]",
     "vnetName": "[concat(parameters('domainName'), '.vn')]",
     "hostName": "[concat(parameters('domainName'), '-vm')]",
-    "templateURLBase": "https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/master/xtremedata-dbx-cluster-centos",
+    "templateURLBase": "https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/dbx-san/xtremedata-dbx-cluster-centos",
     "adminUsername": "azure-user"
   },
   "resources": [
@@ -415,10 +415,9 @@
         "typeHandlerVersion": "1.2",
         "settings": {
           "fileUris": [
-            "[concat(variables('templateURLBase'),'/azure-dbx-setup.sh')]",
-            "[concat(variables('templateURLBase'),'/azure-dbx-start.sh')]"
+            "[concat(variables('templateURLBase'),'/azure-dbx-san-start.sh')]"
           ],
-          "commandToExecute": "[concat('bash azure-dbx-setup.sh ', reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress, ' dbx', variables('suffix'),' ', parameters('vmCount'),' ', copyindex() )]"
+          "commandToExecute": "[concat('bash azure-dbx-san-start.sh ', reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress, ' dbx', variables('suffix'),' ', parameters('vmCount'),' ', copyindex() )]"
         }
       }
     }
