@@ -13,6 +13,7 @@ echo "dbx-san-start Started: $*. `date`"
 headip=$1
 clustername=$2
 myip="$(ip -4 address show eth0 | sed -rn 's/^[[:space:]]*inet ([[:digit:].]+)[/[:space:]].*$/\1/p')"
+login_user="azure-user"
 
 data_nodes=$3
 [ "$data_nodes" -ge 1 ] || { echo "bad number of nodes: $data_nodes" && exit 1; }
@@ -40,6 +41,11 @@ echo dbx-san-start config Done. `date`
 logger -t azure-dbx-san-start "config Done: success"
 
 [ "$4" -ne 0 ] && exit 0
+
+
+# copy $login_user's password to dbxdba
+adm_pwd="$(getent shadow $login_user | awk -F: '{print $2}')"
+[ -n "$adm_pwd" ] && echo -e "dbxdba:$adm_pwd" | chpasswd -e
 
 
 ###### start dbx on head ######
