@@ -63,6 +63,7 @@ while [ "$(/opt/xdcluster/bin/getnodes.sh | wc -l)" -ne $data_nodes ]; do
   sleep 5
   [ $((--nn)) -gt 0 ] || Exit "TIMEOUT waiting for nodes: have $(/opt/xdcluster/bin/getnodes.sh | wc -l), want $data_nodes"
 done
+sleep 10 # temp
 
 su - xdcrm -c "xdcluster scan" || Exit "ERROR: xdc scan"
 su - xdcrm -c "xdcluster role -a AD && xdcluster role -e AH" || Exit "ERROR: xdc role"
