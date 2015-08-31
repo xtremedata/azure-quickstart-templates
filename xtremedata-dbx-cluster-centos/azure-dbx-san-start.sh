@@ -66,9 +66,9 @@ done
 
 su - xdcrm -c "xdcluster scan" || Exit "ERROR: xdc scan"
 su - xdcrm -c "xdcluster role -a AD && xdcluster role -e AH" || Exit "ERROR: xdc role"
-mynodes="$(su - xdcrm -c "xdcluster list work" | grep -w Active | wc -l)"
+mynodes="$(su - xdcrm -c "xdcluster list +use_work" | grep -w Active | wc -l)"
 [ "$mynodes" -eq $((data_nodes+1)) ] || Exit "ERROR: xdc nodes mismatch, have $mynodes expected $((data_nodes+1))"
-su - xdcrm -c "xdcluster init storage +hdata -resil +y && xdcluster booteable on" || Exit "ERROR: xdc init"
+su - xdcrm -c "xdcluster init storage +hdata -resil +y && xdcluster bootable on" || Exit "ERROR: xdc init"
 su - xdcrm -c "xdcluster start" || Exit "ERROR: xdc start"
 
 Exit

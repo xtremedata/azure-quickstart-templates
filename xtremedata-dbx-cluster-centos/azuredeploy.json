@@ -59,7 +59,7 @@
   },
   "variables": {
     "suffix": "",
-    "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4b-3-os-2015-08-05.vhd?sv=2014-02-14&sr=c&sig=ERSa1m1Sgfq%2BAj9TytDrxnpfG7rakNGn0s%2FgUxHWUzY%3D&st=2015-08-06T05%3A00%3A00Z&se=2016-08-14T05%3A00%3A00Z&sp=rl",
+    "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4b-5-os-2015-08-31.vhd?sv=2014-02-14&sr=c&sig=6QJaVSKM4pKlPTSYiVWelfmCeCBIzK47oM2yCCrwwoA%3D&st=2015-08-30T05%3A00%3A00Z&se=2017-09-08T05%3A00%3A00Z&sp=rl",
     "suffixes": [
       "",
       "1",
