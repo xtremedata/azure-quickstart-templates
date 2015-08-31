@@ -13,19 +13,6 @@ the location of the resource group.
 If you are not familiar with Docker Swarm, please
 [read Swarm documentation](http://docs.docker.com/swarm).
 
-## Parameters
-
-| Name   | Description |
-|:--- |:---|
-| `slaveCount`  | Number of the nodes in the Swarm node pool. |
-| `newStorageAccountName`  | Unique name for a new storage account where the VM disks will be stored. |
-| `adminUsername` | SSH user for the Virtual Machines.  |
-| `sshPublicKey` | SSH key for the Virtual Machines.  |
-| `dnsName` | Unique DNS Name for the Swarm Management endpoint and the load balancer for slave nodes. |
-| `dockerCa`  | Base64-encoded Docker CA certificate (`ca.pem`) for the Docker engines and Swarm managers. Leave empty to create an insecure Docker cluster. |
-| `dockerCert`  | Base64-encoded Docker TLS Certificate (`cert.pem`) for the Docker engines and Swarm managers. Leave empty to create an insecure Docker cluster. |
-| `dockerKey` | Base64-encoded Docker TLS Key (`key.pem`) for the Docker engines and Swarm managers. Leave empty to create an insecure Docker cluster. |
-
 ## Cluster Properties
 
 #### Swarm Managers (High Availability Setup)
@@ -34,20 +21,28 @@ The template provisions 3 Swarm manager VMs that use [Consul](https://consul.io/
 for discovery and leader election. These VMs are in an [Avabilability Set][av-set]
 to achieve the highest uptime.
 
-Each manager VM has a public IP address. However, it's recommended to talk to the
-Swarm manager using the DNS adddress emitted in the deployment output rather than
-directly talking to each Swarm Manager. This DNS address is [load balanced][az-lb]
-among the Swarm managers (described later).
-
 Each Swarm manager VM is of size `Standard_A0` as they are not running any workloads
-except Swarm Manager and Consul. Manager node VMs have static private IP addresses
+except the Swarm Manager and Consul containers. Manager node VMs have static private IP addresses
 `10.0.0.4`, `10.0.0.5` and `10.0.0.6` and they are in the same [Virtual Network][az-vnet] as slave nodes.
+
+**Accessing manager VMs:** Swarm manager nodes (`swarm-master-*` VMs) do not have
+public IP addresses. However they are NAT'ted behind an Azure Load Balancer. You
+can SSH into them using the domain name (emitted in the template deployment output) or
+the Public IP address of `swarm-lb-masters` (can be found on the Azure Portal).
+
+Port numbers of each master VM is described in the following table:
+
+| VM   | SSH command |
+|:--- |:---|
+| `swarm-master-0`  | `ssh <username>@<IP> -p 2200` |
+| `swarm-master-1`  | `ssh <username>@<IP> -p 2201` |
+| `swarm-master-2`  | `ssh <username>@<IP> -p 2202` |
 
 #### Configuring Authentication
 
-It is highly recommended to provide `dockerCa`, `dockerCert`, `dockerKey` parameters
-in the template. Otherwise the created Docker Swarm cluster will be open to anyone
-in public Internet without any authentication.
+This template requires the Docker certs triplet (`ca.pem`, `cert.pem`, `key.pem`)
+to secure the Swarm managers and the communication with Docker engines on each Swarm
+node. Please refer to [Docker documentation on generating TLS certs][tls].
 
 These certificates are used to configure each Docker Engine and Docker Swarm
 Manager endpoints using TLS authentication. Once the cluster is created, you
@@ -77,6 +72,27 @@ internet by creating probes and load balancing rules on this Load Balancer
 resource. Load balancer's public DNS address is emitted as an output of the
 template deployment.
 
+#### How to SSH into Swarm Slave Nodes
+
+Since Swarm slave VMs do not have public IP addresses, you first need to SSH into
+Swarm manager VMs (described above) to SSH into Swarm nodes.
+
+You just need to use `ssh -A` to SSH into one of the masters, and from that point
+on you can reach any other VM in the cluster as shown below:
+
+```sh
+$ ## <-- You are on your development machine
+$
+$ ssh -A <username>@<masters-IP> -p 2200
+azureuser@swarm-master-0 ~ $ ## <-- You are on Swarm master
+azureuser@swarm-master-0 ~ $ ssh <username>@swarm-node-3
+azureuser@swarm-node-3 ~ $ ## <-- You are now on a Swarm slave
+```
+
+Swarm node hostnames are numbered starting from 0, such as: `swarm-node-0`,
+`swarm-node-1`, ..., `swarm-node-19` etc. You can see the VM names on the
+Azure Portal as well.
+
 ## Output
 
 The template deployment will output two values:
@@ -93,10 +109,7 @@ Swarm cluster and has no load balancing rules by default. As you deploy services
 to the cluster, you can create new Load Balancing Rules and Probes from Azure
 Portal.
 
------------------
-
-![Docker Swarm logo](https://github.com/docker/swarm/raw/master/logo.png?raw=true)
-
 [av-set]: https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-manage-availability/
 [az-lb]: https://azure.microsoft.com/en-us/documentation/articles/load-balancer-overview/
 [az-vnet]: http://azure.microsoft.com/en-us/documentation/services/virtual-network/
+[tls]: https://docs.docker.com/articles/https/#create-a-ca-server-and-client-keys-with-openssl
