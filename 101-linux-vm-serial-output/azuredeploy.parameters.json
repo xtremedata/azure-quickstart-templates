@@ -3,28 +3,16 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "newStorageAccountName": {
-      "value": ""
+      "value": "uniqueStorageAccount"
     },
     "adminUsername": {
-      "value": ""
+      "value": "userName"
     },
     "adminPassword": {
-      "value": ""
+      "value": "password"
     },
     "dnsNameForPublicIP": {
-      "value": ""
-    },
-    "vmExtensionName": {
-      "value": "ChefClient"
-    },
-    "client_rb": {
-      "value": ""
-    },
-    "runlist": {
-      "value": ""
-    },
-    "validation_key": {
-      "value": ""
+      "value": "uniqueDNS"
     }
   }
 }
