@@ -6,7 +6,7 @@ export HOME
 yum install -y epel-release
 yum install -y nodejs
 yum install -y npm
-npm install -g azure-cli
+npm install -g azure-cli@0.9.8
 azure config mode arm
 
 export AZURE_STORAGE_ACCOUNT="$1"
