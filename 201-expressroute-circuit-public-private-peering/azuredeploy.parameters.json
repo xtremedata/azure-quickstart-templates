@@ -23,6 +23,12 @@
         "sku_family": {
             "value": "MeteredData"
         },
+        "peeringType": {
+            "value": "AzurePublicPeering"
+        },
+        "sharedKey": {
+            "value": "secretkey"
+        },
         "peerASN": {
             "value": 100
         },

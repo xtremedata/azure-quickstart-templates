@@ -21,7 +21,6 @@
     },
     "domainName": {
       "type": "string",
-      "defaultValue": "dbx",
       "metadata": {
         "description": "Prefix for dbX cluster public domain name"
       }
