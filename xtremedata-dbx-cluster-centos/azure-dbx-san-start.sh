@@ -22,10 +22,20 @@ data_nodes=$3
 echo $myip `hostname` >> /etc/hosts
 umount /mnt/resource || true
 
+ephemdev="sdb"
+grep '^/dev/sdb1 / ' /etc/mtab >/dev/null && ephemdev="sda"
+
+cd /sys/block
+for ii in sd*; do
+  [[ $ii = sda || $ii = sdb ]] && continue
+  permdev+="$ii,"
+done
+cd -
+permdev="${permdev%,}"
 rm -f ~xdcrm/tmp/my_config.out
 /etc/init.d/dbx_checkin stop || true
 
-su - xdcrm -c "xdcluster setup static --head=$headip --cluster='$clustername' --devices=udev +y +force_config && xdcluster checkin"
+su - xdcrm -c "xdcluster setup static --head=$headip --cluster='$clustername' --pdevices='$permdev' --edevices='$ephemdev' +old +y +force_config && xdcluster checkin"
 
 echo dbx-san-start config Done. `date`
 logger -t azure-dbx-san-start "config Done: success"
