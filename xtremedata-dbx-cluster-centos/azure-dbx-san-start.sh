@@ -19,23 +19,21 @@ data_nodes=$3
 [ "$data_nodes" -ge 1 ] || { echo "bad number of nodes: $data_nodes" && exit 1; }
 : $((data_nodes--))
 
+if ! grep '^Match User xdaux' /etc/ssh/sshd_config &>/dev/null ; then
+  [ -f /root/tmp/sshd_config_add ] && cat /root/tmp/sshd_config_add >> /etc/ssh/sshd_config && service sshd reload || \
+    { echo 'error setting up xdaux user' >&2; logger -t azure-dbx-san-start 'xdaux user setup error'; exit 1; }
+fi
+grep '^Match User xdaux' /etc/ssh/sshd_config &>/dev/null || \
+  { echo 'xdaux sshd user error'; logger -t azure-dbx-san-start 'xdaux ssh user error'; exit 1; }
+[[ "$(groups xdaux)" =~ nossh ]] && usermod -G '' xdaux
+
 echo $myip `hostname` >> /etc/hosts
 umount /mnt/resource || true
 
-ephemdev="sdb"
-grep '^/dev/sdb1 / ' /etc/mtab >/dev/null && ephemdev="sda"
-
-cd /sys/block
-for ii in sd*; do
-  [[ $ii = sda || $ii = sdb ]] && continue
-  permdev+="$ii,"
-done
-cd -
-permdev="${permdev%,}"
 rm -f ~xdcrm/tmp/my_config.out
 /etc/init.d/dbx_checkin stop || true
 
-su - xdcrm -c "xdcluster setup static --head=$headip --cluster='$clustername' --pdevices='$permdev' --edevices='$ephemdev' +old +y +force_config && xdcluster checkin"
+su - xdcrm -c "xdcluster setup static --head=$headip --cluster='$clustername' --devices=udev +y +force_config && xdcluster checkin"
 
 echo dbx-san-start config Done. `date`
 logger -t azure-dbx-san-start "config Done: success"
@@ -63,7 +61,13 @@ while [ "$(/opt/xdcluster/bin/getnodes.sh | wc -l)" -ne $data_nodes ]; do
   sleep 5
   [ $((--nn)) -gt 0 ] || Exit "TIMEOUT waiting for nodes: have $(/opt/xdcluster/bin/getnodes.sh | wc -l), want $data_nodes"
 done
-sleep 10 # temp
+sleep 30 # temp
+
+# temp temp
+xdcluster config recreate +local || Exit "ERROR: xdc config recreate"
+fgrep '"token": 10000,' /var/lib/xdcluster/xdcluster_config.json >/dev/null && \
+  sed -i 's/"consensus": 5000,/"consensus": 15000,/' /var/lib/xdcluster/xdcluster_config.json
+# end temp temp
 
 su - xdcrm -c "xdcluster scan" || Exit "ERROR: xdc scan"
 su - xdcrm -c "xdcluster role -a AD && xdcluster role -e AH" || Exit "ERROR: xdc role"
