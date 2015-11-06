@@ -57,6 +57,7 @@
     }
   },
   "variables": {
+    "preview": "-preview",
     "suffix": "",
     "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4.0.65-os-2015-11-01.vhd?sv=2014-02-14&sr=c&sig=YmW0g7FLPxBlbYcpTGZalTlV%2BAUIeOG0AxmtV%2BZWpJE%3D&st=2015-11-01T05%3A00%3A00Z&se=2017-11-10T06%3A00%3A00Z&sp=r",
     "suffixes": [
@@ -85,6 +86,15 @@
       "publisher": "OpenLogic",
       "offer": "CentOS",
       "sku": "7.1",
+      "version": "latest"
+    },
+    "mktPublisher": "xtremedata",
+    "mktOffer": "[concat('dbx', variables('preview'))]",
+    "mktSKU": "dbx15001mnt",
+    "imageReferenceDbx": {
+      "publisher": "[variables('mktPublisher')]",
+      "offer": "[variables('mktOffer')]",
+      "sku": "[variables('mktSKU')]",
       "version": "latest"
     },
     "storageAccountName": "[concat(parameters('newStorageAccountName'), variables('suffix') )]",
@@ -134,107 +144,6 @@
             }
           }
         ]
-      }
-    },
-    {
-      "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[concat('imghlpr', variables('suffix'))]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "idleTimeoutInMinutes": 4,
-        "dnsSettings": {
-          "domainNameLabel": "[concat(parameters('domainName'), variables('suffix'),'-imghlpr')]"
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "nic-imghlpr",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
-        "[concat('Microsoft.Network/publicIPAddresses/', 'imghlpr', variables('suffix'))]"
-      ],
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ip1",
-            "properties": {
-              "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(variables('subnetAddressPrefix'),'.5')]",
-              "publicIPAddress": {
-                "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'imghlpr', variables('suffix'))]"
-              },
-              "subnet": {
-                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/', variables('subnetName'))]"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(variables('hostName'),'-imghlpr')]",
-      "apiVersion": "2015-05-01-preview",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', 'nic-imghlpr')]"
-      ],
-      "properties": {
-        "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetSettings').name)]"
-        },
-        "hardwareProfile": {
-          "vmSize": "Standard_DS1"
-        },
-        "osProfile": {
-          "computerName": "[concat(variables('hostName'),'-imghlpr')]",
-          "adminUserName": "[variables('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
-        },
-        "storageProfile": {
-          "imageReference": "[variables('imageReferenceCentOS')]",
-          "osDisk": {
-            "name": "osdisk",
-            "vhd": {
-              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-imghlpr-osdisk.vhd')]"
-            },
-            "caching": "ReadWrite",
-            "createOption": "FromImage"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces','nic-imghlpr')]"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('hostName'),'-imghlpr', '/imghlpr')]",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('hostName'),'-imghlpr')]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.OSTCExtensions",
-        "type": "CustomScriptForLinux",
-        "typeHandlerVersion": "1.2",
-        "settings": {
-          "fileUris": [
-            "[concat(variables('templateURLBase'),'/azure-imghlpr.sh')]"
-          ],
-          "commandToExecute": "[concat('bash azure-imghlpr.sh ', variables('storageAccountName'),' ',listKeys(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2015-05-01-preview').key1,' ', variables('srcImage') )]"
-        }
       }
     },
     {
@@ -292,12 +201,16 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', 'nic', copyindex())]",
-        "[concat('Microsoft.Compute/virtualMachines/',variables('hostName'),'-imghlpr','/extensions/imghlpr')]"
+        "[concat('Microsoft.Network/networkInterfaces/', 'nic', copyindex())]"
       ],
       "copy": {
         "name": "vmLoop",
         "count": "[parameters('vmCount')]"
+      },
+      "plan": {
+        "name": "[variables('mktSKU')]",
+        "publisher": "[variables('mktPublisher')]",
+        "product": "[variables('mktOffer')]"
       },
       "properties": {
         "availabilitySet": {
@@ -312,12 +225,9 @@
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
+          "imageReference": "[variables('imageReferenceDbx')]",
           "osDisk": {
             "name": "osdisk",
-            "osType": "linux",
-            "image": {
-              "uri": "[variables('osImage')]"
-            },
             "vhd": {
               "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-osdisk.vhd')]"
             },
