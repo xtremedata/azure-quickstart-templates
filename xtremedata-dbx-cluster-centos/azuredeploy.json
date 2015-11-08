@@ -58,7 +58,6 @@
   },
   "variables": {
     "preview": "-preview",
-    "suffix": "",
     "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4.0.65-os-2015-11-01.vhd?sv=2014-02-14&sr=c&sig=YmW0g7FLPxBlbYcpTGZalTlV%2BAUIeOG0AxmtV%2BZWpJE%3D&st=2015-11-01T05%3A00%3A00Z&se=2017-11-10T06%3A00%3A00Z&sp=r",
     "storageAccountType": "Premium_LRS",
     "vnetAddressSpace": "10.0.0.0/16",
@@ -86,9 +85,9 @@
       "sku": "[variables('mktSKU')]",
       "version": "latest"
     },
-    "storageAccountName": "[concat(parameters('newStorageAccountName'), variables('suffix') )]",
+    "storageAccountName": "[parameters('newStorageAccountName')]",
     "dataDiskSize": 128,
-    "osImage": "[concat('http://',parameters('newStorageAccountName'),variables('suffix'),'.blob.core.windows.net/img/os-disk-img.vhd')]",
+    "osImage": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/img/os-disk-img.vhd')]",
     "vnetName": "[concat(parameters('domainName'), '.vn')]",
     "hostName": "[concat(parameters('domainName'), '-vm')]",
     "templateURLBase": "https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/master/xtremedata-dbx-cluster-centos",
@@ -138,13 +137,13 @@
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[concat('dbx-ip', variables('suffix'))]",
+      "name": "dbx-ip",
       "location": "[parameters('location')]",
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
         "idleTimeoutInMinutes": 4,
         "dnsSettings": {
-          "domainNameLabel": "[concat(parameters('domainName'), variables('suffix'))]"
+          "domainNameLabel": "[parameters('domainName')]"
         }
       }
     },
@@ -155,7 +154,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
-        "[concat('Microsoft.Network/publicIPAddresses/', 'dbx-ip', variables('suffix'))]"
+        "[concat('Microsoft.Network/publicIPAddresses/', 'dbx-ip')]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -165,7 +164,7 @@
               "privateIPAllocationMethod": "Static",
               "privateIPAddress": "[concat(variables('subnetAddrComponents')[0],'.',variables('subnetAddrComponents')[1],'.',variables('subnetAddrComponents')[2],'.10')]",
               "publicIPAddress": {
-                "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'dbx-ip', variables('suffix'))]"
+                "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'dbx-ip')]"
               },
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/', variables('subnetName'))]"
@@ -402,7 +401,7 @@
           "fileUris": [
             "[concat(variables('templateURLBase'),'/azure-dbx-san-start.sh')]"
           ],
-          "commandToExecute": "[concat('bash azure-dbx-san-start.sh ', reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress, ' dbx', variables('suffix'),' ', parameters('vmCount'),' ', copyindex() )]"
+          "commandToExecute": "[concat('bash azure-dbx-san-start.sh ', reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress, ' dbx ', parameters('vmCount'),' ', copyindex() )]"
         }
       }
     }
