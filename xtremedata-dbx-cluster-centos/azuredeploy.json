@@ -60,18 +60,6 @@
     "preview": "-preview",
     "suffix": "",
     "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4.0.65-os-2015-11-01.vhd?sv=2014-02-14&sr=c&sig=YmW0g7FLPxBlbYcpTGZalTlV%2BAUIeOG0AxmtV%2BZWpJE%3D&st=2015-11-01T05%3A00%3A00Z&se=2017-11-10T06%3A00%3A00Z&sp=r",
-    "suffixes": [
-      "",
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9"
-    ],
     "storageAccountType": "Premium_LRS",
     "vnetAddressSpace": "10.0.0.0/16",
     "subnetAddressSpace": "10.0.0.0/24",
@@ -149,42 +137,34 @@
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[concat('dbx-ip', variables('suffix'), copyindex())]",
+      "name": "[concat('dbx-ip', variables('suffix'))]",
       "location": "[parameters('location')]",
-      "copy": {
-        "name": "pIPAddrLoop",
-        "count": "[parameters('vmCount')]"
-      },
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
         "idleTimeoutInMinutes": 4,
         "dnsSettings": {
-          "domainNameLabel": "[concat(parameters('domainName'), variables('suffix'), variables('suffixes')[copyindex()])]"
+          "domainNameLabel": "[concat(parameters('domainName'), variables('suffix'))]"
         }
       }
     },
     {
       "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat('nic', copyindex())]",
+      "name": "nic0",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
-        "[concat('Microsoft.Network/publicIPAddresses/', 'dbx-ip', variables('suffix'), copyindex())]"
+        "[concat('Microsoft.Network/publicIPAddresses/', 'dbx-ip', variables('suffix'))]"
       ],
-      "copy": {
-        "name": "nicLoop",
-        "count": "[parameters('vmCount')]"
-      },
       "properties": {
         "ipConfigurations": [
           {
             "name": "ip1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(variables('subnetAddressPrefix'),'.', copyindex(10))]",
+              "privateIPAddress": "[concat(variables('subnetAddressPrefix'),'.10')]",
               "publicIPAddress": {
-                "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'dbx-ip', variables('suffix'), copyindex())]"
+                "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'dbx-ip', variables('suffix'))]"
               },
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/', variables('subnetName'))]"
@@ -195,17 +175,132 @@
       }
     },
     {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat('nic', copyindex(1))]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
+      ],
+      "copy": {
+        "name": "nicLoop",
+        "count": "[sub(parameters('vmCount'),1)]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ip1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[concat(variables('subnetAddressPrefix'),'.', copyindex(11))]",
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/', variables('subnetName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(variables('hostName'),'-',copyindex())]",
+      "name": "[concat(variables('hostName'),'-0')]",
       "apiVersion": "2015-05-01-preview",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', 'nic', copyindex())]"
+        "[concat('Microsoft.Network/networkInterfaces/', 'nic0')]"
+      ],
+      "plan": {
+        "name": "[variables('mktSKU')]",
+        "publisher": "[variables('mktPublisher')]",
+        "product": "[variables('mktOffer')]"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetSettings').name)]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('hostName')]",
+          "adminUserName": "[variables('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('imageReferenceDbx')]",
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "name": "datadisk0",
+              "diskSizeGB": "[variables('dataDiskSize')]",
+              "lun": 0,
+              "vhd": {
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk0.vhd')]"
+              },
+              "caching": "None",
+              "createOption": "Empty"
+            },
+            {
+              "name": "datadisk1",
+              "diskSizeGB": "[variables('dataDiskSize')]",
+              "lun": 1,
+              "vhd": {
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk1.vhd')]"
+              },
+              "caching": "None",
+              "createOption": "Empty"
+            },
+            {
+              "name": "datadisk2",
+              "diskSizeGB": "[variables('dataDiskSize')]",
+              "lun": 2,
+              "vhd": {
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk2.vhd')]"
+              },
+              "caching": "None",
+              "createOption": "Empty"
+            },
+            {
+              "name": "datadisk3",
+              "diskSizeGB": "[variables('dataDiskSize')]",
+              "lun": 3,
+              "vhd": {
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk3.vhd')]"
+              },
+              "caching": "None",
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces','nic0')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('hostName'),'-',copyindex(1))]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', 'nic', copyindex(1))]"
       ],
       "copy": {
         "name": "vmLoop",
-        "count": "[parameters('vmCount')]"
+        "count": "[sub(parameters('vmCount'),1)]"
       },
       "plan": {
         "name": "[variables('mktSKU')]",
@@ -220,7 +315,7 @@
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "[concat(variables('hostName'),'-',copyindex())]",
+          "computerName": "[concat(variables('hostName'),'-',copyindex(1))]",
           "adminUserName": "[variables('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
@@ -229,7 +324,7 @@
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-osdisk.vhd')]"
+              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(1), '-osdisk.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -240,7 +335,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 0,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-datadisk0.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(1), '-datadisk0.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -250,7 +345,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 1,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-datadisk1.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(1), '-datadisk1.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -260,7 +355,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 2,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-datadisk2.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(1), '-datadisk2.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -270,27 +365,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 3,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-datadisk3.vhd')]"
-              },
-              "caching": "None",
-              "createOption": "Empty"
-            },
-            {
-              "name": "datadisk4",
-              "diskSizeGB": "[variables('dataDiskSize')]",
-              "lun": 4,
-              "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-datadisk4.vhd')]"
-              },
-              "caching": "None",
-              "createOption": "Empty"
-            },
-            {
-              "name": "datadisk5",
-              "diskSizeGB": "[variables('dataDiskSize')]",
-              "lun": 5,
-              "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(), '-datadisk5.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-',copyindex(1), '-datadisk3.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -300,7 +375,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat('nic',copyindex()))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat('nic',copyindex(1)))]"
             }
           ]
         }
