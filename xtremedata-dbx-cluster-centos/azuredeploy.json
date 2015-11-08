@@ -63,7 +63,8 @@
     "storageAccountType": "Premium_LRS",
     "vnetAddressSpace": "10.0.0.0/16",
     "subnetAddressSpace": "10.0.0.0/24",
-    "subnetAddressPrefix": "10.0.0",
+    "addrSplitDelim": [".", "/"],
+    "subnetAddrComponents": "[split(variables('subnetAddressSpace'),variables('addrSplitDelim'))]",
     "subnetName": "Subnet-1",
     "availabilitySetSettings": {
       "name": "availabilitySet1",
@@ -162,7 +163,7 @@
             "name": "ip1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(variables('subnetAddressPrefix'),'.10')]",
+              "privateIPAddress": "[concat(variables('subnetAddrComponents')[0],'.',variables('subnetAddrComponents')[1],'.',variables('subnetAddrComponents')[2],'.10')]",
               "publicIPAddress": {
                 "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'dbx-ip', variables('suffix'))]"
               },
@@ -192,7 +193,7 @@
             "name": "ip1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(variables('subnetAddressPrefix'),'.', copyindex(11))]",
+              "privateIPAddress": "[concat(variables('subnetAddrComponents')[0],'.',variables('subnetAddrComponents')[1],'.',variables('subnetAddrComponents')[2],'.', copyindex(11))]",
               "subnet": {
                 "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/', variables('subnetName'))]"
               }
