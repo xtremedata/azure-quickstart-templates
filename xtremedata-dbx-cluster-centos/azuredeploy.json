@@ -6,7 +6,43 @@
       "type": "string",
       "defaultValue": "West US",
       "allowedValues": [
-        "West US"
+          "West US",
+          "East US 2",
+          "East US",
+          "Central US",
+          "South Central US",
+          "North Central US",
+          "West Europe",
+          "North Europe",
+          "East Asia",
+          "Southeast Asia",
+          "Japan West",
+          "Japan East",
+          "Brazil South",
+          "Australia East",
+          "Australia Southeast",
+          "Central India",
+          "West India",
+          "South India",
+          "westus",
+          "eastus2",
+          "eastus",
+          "centralus",
+          "southcentralus",
+          "northcentralus",
+          "westeurope",
+          "northeurope",
+          "eastasia",
+          "southeastasia",
+          "japanwest",
+          "japaneast",
+          "brazilsouth",
+          "australiaeast",
+          "australiasoutheast",
+          "centralindia",
+          "westindia",
+          "southindia",
+          "centralindia"
       ],
       "metadata": {
         "description": "Azure cloud location for dbX cluster"
@@ -49,7 +85,9 @@
       "allowedValues": [
         2,
         4,
-        8
+        6,
+        8,
+        10
       ],
       "metadata": {
         "description": "Number of nodes for dbX cluster"
