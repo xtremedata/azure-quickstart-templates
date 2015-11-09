@@ -1,0 +1,54 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "Location for dbX cluster"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual Network name (e.g. vnet-lustre)"
+            }
+        },
+        "vnetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual Network Resource Group"
+            }
+        },
+        "vnetAddressSpace": {
+            "type": "string",
+             "metadata": {
+                "description": "Virtual Network Address Prefix (i.e. CIDR)"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+             "metadata": {
+                "description": "all dbX nodes will be deployed into this subnet within the Virtual Network"
+            }
+        },
+        "subnetAddressSpace": {
+            "type": "string",
+             "metadata": {
+                "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
+            }
+        }
+    },
+    "variables": {
+        "vnetID": "[resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+        "subnetID": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]"
+    },
+    "resources": [ 
+    ],
+    "outputs": {
+        "subnetID": {
+            "value": "[variables('subnetID')]",
+            "type": "string"
+        }
+    }
+}

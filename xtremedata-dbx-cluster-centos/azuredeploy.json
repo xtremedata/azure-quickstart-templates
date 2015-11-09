@@ -2,6 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "artifactsBaseUrl": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Base URL of the solution template",
+        "artifactsBaseUrl": ""
+      }
+    },
     "location": {
       "type": "string",
       "defaultValue": "West US",
@@ -111,17 +119,59 @@
       "metadata": {
         "description": "Number of nodes for dbX cluster"
       }
+    },
+    "vnetNewOrExisting": {
+        "type": "string",
+        "defaultValue": "new",
+        "allowedValues": [
+            "new",
+            "existing"
+        ],
+        "metadata": {
+            "description": "Specifies if a new or an existing virtual network should be used for deploying VMs"
+        }
+    },
+    "vnetResourceGroup": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().name]",
+        "metadata": {
+            "description": "Virtual Network Resource Group"
+        }
+    },
+    "vnetName": {
+        "type": "string",
+        "metadata": {
+            "description": "Virtual Network name"
+        }
+    },
+    "vnetAddressSpace": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/16",
+        "metadata": {
+            "description": "Virtual Network Address Prefix (i.e. CIDR)"
+        }
+    },
+    "subnetName": {
+        "type": "string",
+        "defaultValue": "subnet-dbx",
+        "metadata": {
+            "description": "all dbX nodes will be deployed into this subnet within the Virtual Network"
+        }
+    },
+    "subnetAddressSpace": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/24",
+        "metadata": {
+            "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
+        }
     }
   },
   "variables": {
     "preview": "-preview",
     "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4.0.65-os-2015-11-01.vhd?sv=2014-02-14&sr=c&sig=YmW0g7FLPxBlbYcpTGZalTlV%2BAUIeOG0AxmtV%2BZWpJE%3D&st=2015-11-01T05%3A00%3A00Z&se=2017-11-10T06%3A00%3A00Z&sp=r",
     "storageAccountType": "Premium_LRS",
-    "vnetAddressSpace": "10.0.0.0/16",
-    "subnetAddressSpace": "10.0.0.0/24",
     "addrSplitDelim": [".", "/"],
-    "subnetAddrComponents": "[split(variables('subnetAddressSpace'),variables('addrSplitDelim'))]",
-    "subnetName": "Subnet-1",
+    "subnetAddrComponents": "[split(parameters('subnetAddressSpace'),variables('addrSplitDelim'))]",
     "availabilitySetSettings": {
       "name": "availabilitySet1",
       "faultDomainCount": "3",
@@ -145,11 +195,13 @@
     "storageAccountName": "[parameters('newStorageAccountName')]",
     "dataDiskSize": 128,
     "osImage": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/img/os-disk-img.vhd')]",
-    "vnetName": "[concat(parameters('domainName'), '.vn')]",
     "hostName": "[concat(parameters('domainName'), '-vm')]",
-    "templateURLBase": "https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/master/xtremedata-dbx-cluster-centos/",
+    "templateURLBase": "[concat(parameters('artifactsBaseUrl'),'/')]",
     "startScriptName": "azure-dbx-san-start.sh",
     "startScriptURL": "[concat(variables('templateURLBase'),variables('startScriptName'))]",
+    "templateUrlVnet": "[concat(variables('templateURLBase'),'vnet-',parameters('vnetNewOrExisting'),'.json')]",
+    "vnetID": "[resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+    "subnetID": "[concat(variables('vnetID'), '/subnets/', parameters('subnetName'))]",
     "adminUsername": "azure-user",
     "sshKeyPath": "[concat('/home/',variables('adminUsername'),'/.ssh/authorized_keys')]",
     "linuxConfiguration_sshPublicKey": {
@@ -177,6 +229,38 @@
       }
     },
     {
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "name": "vnet",
+      "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+              "uri": "[variables('templateUrlVnet')]",
+              "contentVersion": "1.0.0.0"
+          },
+          "parameters": {
+              "location": {
+                  "value": "[parameters('location')]"
+              },
+              "vnetName": {
+                  "value": "[parameters('vnetName')]"
+              },
+              "vnetResourceGroup": {
+                  "value": "[parameters('vnetResourceGroup')]"
+              },
+              "vnetAddressSpace": {
+                  "value": "[parameters('vnetAddressSpace')]"
+              },
+              "subnetName": {
+                  "value": "[parameters('subnetName')]"
+              },
+              "subnetAddressSpace": {
+                  "value": "[parameters('subnetAddressSpace')]"
+              }
+          }
+      }
+    },
+    {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/availabilitySets",
       "name": "[variables('availabilitySetSettings').name]",
@@ -184,27 +268,6 @@
       "properties": {
         "platformFaultDomainCount": "[variables('availabilitySetSettings').faultDomainCount]",
         "platformUpdateDomainCount": "[variables('availabilitySetSettings').updateDomainCount]"
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('vnetName')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('vnetAddressSpace')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('subnetName')]",
-            "properties": {
-              "addressPrefix": "[variables('subnetAddressSpace')]"
-            }
-          }
-        ]
       }
     },
     {
@@ -226,7 +289,7 @@
       "name": "nic0",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
+        "[concat('Microsoft.Resources/deployments/', 'vnet')]",
         "[concat('Microsoft.Network/publicIPAddresses/', 'dbx-ip')]"
       ],
       "properties": {
@@ -240,7 +303,7 @@
                 "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'dbx-ip')]"
               },
               "subnet": {
-                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/', variables('subnetName'))]"
+                "id": "[reference('Microsoft.Resources/deployments/vnet','2015-01-01').outputs.subnetID.value]"
               }
             }
           }
@@ -253,7 +316,7 @@
       "name": "[concat('nic', copyindex(1))]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
+        "[concat('Microsoft.Resources/deployments/', 'vnet')]"
       ],
       "copy": {
         "name": "nicLoop",
@@ -267,7 +330,7 @@
               "privateIPAllocationMethod": "Static",
               "privateIPAddress": "[concat(variables('subnetAddrComponents')[0],'.',variables('subnetAddrComponents')[1],'.',variables('subnetAddrComponents')[2],'.', copyindex(11))]",
               "subnet": {
-                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '/subnets/', variables('subnetName'))]"
+                "id": "[reference('Microsoft.Resources/deployments/vnet','2015-01-01').outputs.subnetID.value]"
               }
             }
           }
