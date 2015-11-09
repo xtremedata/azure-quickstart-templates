@@ -147,7 +147,9 @@
     "osImage": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/img/os-disk-img.vhd')]",
     "vnetName": "[concat(parameters('domainName'), '.vn')]",
     "hostName": "[concat(parameters('domainName'), '-vm')]",
-    "templateURLBase": "https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/master/xtremedata-dbx-cluster-centos",
+    "templateURLBase": "https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/master/xtremedata-dbx-cluster-centos/",
+    "startScriptName": "azure-dbx-san-start.sh",
+    "startScriptURL": "[concat(variables('templateURLBase'),variables('startScriptName'))]",
     "adminUsername": "azure-user",
     "sshKeyPath": "[concat('/home/',variables('adminUsername'),'/.ssh/authorized_keys')]",
     "linuxConfiguration_sshPublicKey": {
@@ -472,9 +474,9 @@
         "typeHandlerVersion": "1.2",
         "settings": {
           "fileUris": [
-            "[concat(variables('templateURLBase'),'/azure-dbx-san-start.sh')]"
+            "[variables('startScriptURL')]"
           ],
-          "commandToExecute": "[concat('bash azure-dbx-san-start.sh ', reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress, ' dbx ', parameters('vmCount'),' ', copyindex() )]"
+          "commandToExecute": "[concat('bash ',variables('startScriptName'),' ',reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress,' ',parameters('domainName'),' ',parameters('vmCount'),' ',copyindex() )]"
         }
       }
     }
