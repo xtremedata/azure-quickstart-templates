@@ -72,7 +72,7 @@
         "description": "Storage account type"
       }
     },
-    "domainName": {
+    "dnsName": {
       "type": "string",
       "metadata": {
         "description": "Prefix for dbX cluster public domain name"
@@ -149,7 +149,6 @@
     },
     "vnetName": {
         "type": "string",
-        "defaultValue": "vnet-dbx",
         "metadata": {
             "description": "Virtual Network name"
         }
@@ -176,20 +175,20 @@
         }
     },
     "ipOffset": {
-        "type": "int",
-        "defaultValue": 10,
+        "type": "string",
+        "defaultValue": "10",
         "metadata": {
             "description": "Offset of the head node's private IP address within the Subnet"
         }
     }
   },
   "variables": {
-    "preview": "-preview",
+    "preview": "",
     "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4.0.65-os-2015-11-01.vhd?sv=2014-02-14&sr=c&sig=YmW0g7FLPxBlbYcpTGZalTlV%2BAUIeOG0AxmtV%2BZWpJE%3D&st=2015-11-01T05%3A00%3A00Z&se=2017-11-10T06%3A00%3A00Z&sp=r",
     "storageAccountType": "[parameters('storageAccountType')]",
     "addrSplitDelim": [".", "/"],
     "subnetAddrComponents": "[split(parameters('subnetAddressSpace'),variables('addrSplitDelim'))]",
-    "startPrivateIPLast": "[add(int(variables('subnetAddrComponents')[3]),parameters('ipOffset'))]",
+    "startPrivateIPLast": "[add(int(variables('subnetAddrComponents')[3]),int(parameters('ipOffset')))]",
     "availabilitySetSettings": {
       "name": "availabilitySet1",
       "faultDomainCount": "3",
@@ -211,9 +210,9 @@
       "version": "latest"
     },
     "storageAccountName": "[parameters('storageAccountPrefix')]",
-    "dataDiskSize": 128,
+    "dataDiskSize": 512,
     "osImage": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/img/os-disk-img.vhd')]",
-    "hostName": "[concat(parameters('domainName'), '-vm')]",
+    "hostName": "[concat(parameters('dnsName'), '-vm')]",
     "templateURLBase": "[concat(parameters('artifactsBaseUrl'),'/')]",
     "startScriptName": "azure-dbx-san-start.sh",
     "startScriptURL": "[concat(variables('templateURLBase'),variables('startScriptName'))]",
@@ -297,7 +296,7 @@
         "publicIPAllocationMethod": "Dynamic",
         "idleTimeoutInMinutes": 4,
         "dnsSettings": {
-          "domainNameLabel": "[parameters('domainName')]"
+          "domainNameLabel": "[parameters('dnsName')]"
         }
       }
     },
@@ -557,7 +556,7 @@
           "fileUris": [
             "[variables('startScriptURL')]"
           ],
-          "commandToExecute": "[concat('bash ',variables('startScriptName'),' ',reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress,' ',parameters('domainName'),' ',parameters('vmCount'),' ',copyindex() )]"
+          "commandToExecute": "[concat('bash ',variables('startScriptName'),' ',reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress,' ',parameters('dnsName'),' ',parameters('vmCount'),' ',copyindex() )]"
         }
       }
     }
