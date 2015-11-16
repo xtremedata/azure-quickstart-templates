@@ -12,7 +12,6 @@
     },
     "location": {
       "type": "string",
-      "defaultValue": "West US",
       "allowedValues": [
           "West US",
           "East US 2",
@@ -76,6 +75,12 @@
       "type": "string",
       "metadata": {
         "description": "Prefix for dbX cluster public domain name"
+      }
+    },
+    "adminUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "username used to administer dbX (must be 'azure-user')"
       }
     },
     "authType": {
@@ -219,8 +224,7 @@
     "templateUrlVnet": "[concat(variables('templateURLBase'),'vnet-',parameters('vnetNewOrExisting'),'.json')]",
     "vnetID": "[resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
     "subnetID": "[concat(variables('vnetID'), '/subnets/', parameters('subnetName'))]",
-    "adminUsername": "azure-user",
-    "sshKeyPath": "[concat('/home/',variables('adminUsername'),'/.ssh/authorized_keys')]",
+    "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
     "linuxConfiguration_sshPublicKey": {
         "disablePasswordAuthentication": "true",
         "ssh": {
@@ -377,7 +381,7 @@
         },
         "osProfile": {
           "computerName": "[variables('hostName')]",
-          "adminUserName": "[variables('adminUsername')]",
+          "adminUserName": "[parameters('adminUserName')]",
           "adminPassword": "[parameters('adminPassword')]",
           "linuxConfiguration": "[variables('linuxConfiguration')]"
         },
@@ -470,7 +474,7 @@
         },
         "osProfile": {
           "computerName": "[concat(variables('hostName'),'-',copyindex(1))]",
-          "adminUserName": "[variables('adminUsername')]",
+          "adminUserName": "[parameters('adminUserName')]",
           "adminPassword": "[parameters('adminPassword')]",
           "linuxConfiguration": "[variables('linuxConfiguration')]"
         },

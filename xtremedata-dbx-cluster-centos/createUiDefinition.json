@@ -15,6 +15,18 @@
                 }
             },
             {
+                "name": "sshUser",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Admin user name (fixed)",
+                "defaultValue": "azure-user",
+                "toolTip": "user 'azure-user' must be used to administer dbX",
+                "constraints": {
+                    "allowedValues": [
+                        { "label": "azure-user", "value": "azure-user" }
+                    ]
+                }
+            },
+            {
                 "name": "sshCredentials",
                 "type": "Microsoft.Compute.CredentialsCombo",
                 "label": {
@@ -49,7 +61,6 @@
                         "type": "Microsoft.Common.DropDown",
                         "label": "Number of nodes",
                         "toolTip": "Total number of nodes in the dbX cluster",
-                        "toolTip": "",
                         "constraints": {
                             "allowedValues": [
                                 { "label": "2", "value": 2 },
@@ -67,18 +78,17 @@
                         "label": "Virtual machine size",
                         "toolTip": "VM Size for each dbX node",
                         "recommendedSizes": [
-                            "Standard_DS12",
+                            "Standard_DS14",
                             "Standard_DS13",
-                            "Standard_DS14"
+                            "Standard_DS12"
                         ],
                         "constraints": {
                             "allowedSizes": [
-                                "Standard_DS12",
+                                "Standard_DS14",
                                 "Standard_DS13",
-                                "Standard_DS14"
+                                "Standard_DS12"
                             ]
                         },
-                        "defaultValue": "Standard_DS14",
                         "osPlatform": "Linux",
                         "imageReference": {
                             "publisher": "xtremedata",
@@ -173,6 +183,7 @@
         ],
         "outputs": {
             "location": "[location()]",
+            "adminUserName": "[basics('sshUser')]",
             "adminPassword": "[basics('sshCredentials').password]",
             "adminSshPublicKey": "[basics('sshCredentials').sshPublicKey]",
             "authType": "[basics('sshCredentials').authenticationType]",
