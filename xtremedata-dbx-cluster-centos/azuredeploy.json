@@ -147,7 +147,6 @@
     },
     "vnetResourceGroup": {
         "type": "string",
-        "defaultValue": "[resourceGroup().name]",
         "metadata": {
             "description": "Virtual Network Resource Group"
         }
