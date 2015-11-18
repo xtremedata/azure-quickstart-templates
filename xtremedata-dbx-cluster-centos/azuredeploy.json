@@ -4,7 +4,7 @@
   "parameters": {
     "artifactsBaseUrl": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "https://raw.githubusercontent.com/xtremedata/azure-quickstart-templates/solution/xtremedata-dbx-cluster-centos",
       "metadata": {
         "description": "Base URL of the solution template",
         "artifactsBaseUrl": ""
@@ -79,6 +79,7 @@
     },
     "adminUserName": {
       "type": "string",
+      "defaultValue": "azure-user",
       "metadata": {
         "description": "username used to administer dbX (must be 'azure-user')"
       }
