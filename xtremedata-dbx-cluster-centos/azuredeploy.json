@@ -12,47 +12,14 @@
     },
     "location": {
       "type": "string",
-      "allowedValues": [
-          "West US",
-          "East US 2",
-          "East US",
-          "Central US",
-          "South Central US",
-          "North Central US",
-          "West Europe",
-          "North Europe",
-          "East Asia",
-          "Southeast Asia",
-          "Japan West",
-          "Japan East",
-          "Brazil South",
-          "Australia East",
-          "Australia Southeast",
-          "Central India",
-          "West India",
-          "South India",
-          "westus",
-          "eastus2",
-          "eastus",
-          "centralus",
-          "southcentralus",
-          "northcentralus",
-          "westeurope",
-          "northeurope",
-          "eastasia",
-          "southeastasia",
-          "japanwest",
-          "japaneast",
-          "brazilsouth",
-          "australiaeast",
-          "australiasoutheast",
-          "centralindia",
-          "westindia",
-          "southindia",
-          "centralindia"
-      ],
       "metadata": {
         "description": "Azure cloud location for dbX cluster"
+      }
+    },
+    "clusterName": {
+      "type": "string",
+      "metadata": {
+        "description": "dbX cluster name used as prefix for host names"
       }
     },
     "storageAccountPrefix": {
@@ -71,15 +38,8 @@
         "description": "Storage account type"
       }
     },
-    "dnsName": {
-      "type": "string",
-      "metadata": {
-        "description": "Prefix for dbX cluster public domain name"
-      }
-    },
     "adminUserName": {
       "type": "string",
-      "defaultValue": "azure-user",
       "metadata": {
         "description": "username used to administer dbX (must be 'azure-user')"
       }
@@ -88,11 +48,11 @@
       "type": "string",
       "defaultValue": "password",
       "allowedValues": [
-          "password",
-          "sshPublicKey"
+        "password",
+        "sshPublicKey"
       ],
       "metadata": {
-          "description": "Authentication type for the virtual machines"
+        "description": "Authentication type for the virtual machines"
       }
     },
     "adminPassword": {
@@ -111,12 +71,7 @@
     },
     "vmSize": {
       "type": "string",
-      "defaultValue": "Standard_DS14",
-      "allowedValues": [
-        "Standard_DS12",
-        "Standard_DS13",
-        "Standard_DS14"
-      ],
+      "defaultValue": "Standard_DS12",
       "metadata": {
         "description": "dbX cluster node VM type"
       }
@@ -126,9 +81,13 @@
       "defaultValue": 2,
       "allowedValues": [
         2,
+        3,
         4,
+        5,
         6,
+        7,
         8,
+        9,
         10
       ],
       "metadata": {
@@ -136,74 +95,98 @@
       }
     },
     "vnetNewOrExisting": {
-        "type": "string",
-        "defaultValue": "new",
-        "allowedValues": [
-            "new",
-            "existing"
-        ],
-        "metadata": {
-            "description": "Specifies if a new or an existing virtual network should be used for deploying VMs"
-        }
+      "type": "string",
+      "defaultValue": "new",
+      "allowedValues": [
+        "new",
+        "existing"
+      ],
+      "metadata": {
+        "description": "Specifies if a new or an existing virtual network should be used for deploying VMs"
+      }
     },
     "vnetResourceGroup": {
-        "type": "string",
-        "metadata": {
-            "description": "Virtual Network Resource Group"
-        }
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Virtual Network Resource Group"
+      }
     },
     "vnetName": {
-        "type": "string",
-        "metadata": {
-            "description": "Virtual Network name"
-        }
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network name"
+      }
     },
     "vnetAddressSpace": {
-        "type": "string",
-        "defaultValue": "10.0.0.0/16",
-        "metadata": {
-            "description": "Virtual Network Address Prefix (i.e. CIDR)"
-        }
+      "type": "string",
+      "defaultValue": "10.0.0.0/16",
+      "metadata": {
+        "description": "Virtual Network Address Prefix (i.e. CIDR)"
+      }
     },
     "subnetName": {
-        "type": "string",
-        "defaultValue": "subnet-dbx",
-        "metadata": {
-            "description": "all dbX nodes will be deployed into this subnet within the Virtual Network"
-        }
+      "type": "string",
+      "defaultValue": "subnet-dbx",
+      "metadata": {
+        "description": "all dbX nodes will be deployed into this subnet within the Virtual Network"
+      }
     },
     "subnetAddressSpace": {
-        "type": "string",
-        "defaultValue": "10.0.0.0/24",
-        "metadata": {
-            "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
-        }
+      "type": "string",
+      "defaultValue": "10.0.0.0/24",
+      "metadata": {
+        "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
+      }
     },
     "ipOffset": {
-        "type": "string",
-        "defaultValue": "10",
-        "metadata": {
-            "description": "Offset of the head node's private IP address within the Subnet"
-        }
+      "type": "string",
+      "defaultValue": "10",
+      "metadata": {
+        "description": "Offset of the head node's private IP address within the Subnet"
+      }
+    },
+    "publicIPAddressNewOrExisting": {
+      "type": "string",
+      "defaultValue": "new",
+      "allowedValues": [
+        "new",
+        "existing"
+      ],
+      "metadata": {
+        "description": "Parameter that specifies if an new or an existing public IP should be used for deployment"
+      }
+    },
+    "publicIPAddressResourceGroup": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Public IP resource group for cases when existing public IP is used"
+      }
+    },
+    "publicIPAddressName": {
+      "type": "string",
+      "metadata": { "description": "Public IP Address name" }
+    },
+    "publicIPAddressDomainNameLabel": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": { "description": "Public IP DNS label" }
     }
   },
   "variables": {
     "preview": "",
-    "srcImage": "https://dbxpub.blob.core.windows.net/imgs/dbx-v4.0.65-os-2015-11-01.vhd?sv=2014-02-14&sr=c&sig=YmW0g7FLPxBlbYcpTGZalTlV%2BAUIeOG0AxmtV%2BZWpJE%3D&st=2015-11-01T05%3A00%3A00Z&se=2017-11-10T06%3A00%3A00Z&sp=r",
+    "storageAccountName": "[concat(parameters('storageAccountPrefix'),'1')]",
     "storageAccountType": "[parameters('storageAccountType')]",
-    "addrSplitDelim": [".", "/"],
+    "storageAccountNameStandard": "[concat(parameters('storageAccountPrefix'),'2')]",
+    "storageAccountTypeStandard": "Standard_LRS",
+    "addrSplitDelim": [ ".", "/" ],
     "subnetAddrComponents": "[split(parameters('subnetAddressSpace'),variables('addrSplitDelim'))]",
     "startPrivateIPLast": "[add(int(variables('subnetAddrComponents')[3]),int(parameters('ipOffset')))]",
     "availabilitySetSettings": {
-      "name": "availabilitySet1",
+      "name": "[concat(parameters('clusterName'),'-availset')]",
       "faultDomainCount": "3",
       "updateDomainCount": "5"
-    },
-    "imageReferenceCentOS": {
-      "publisher": "OpenLogic",
-      "offer": "CentOS",
-      "sku": "7.1",
-      "version": "latest"
     },
     "mktPublisher": "xtremedata",
     "mktOffer": "[concat('dbx', variables('preview'))]",
@@ -214,27 +197,27 @@
       "sku": "[variables('mktSKU')]",
       "version": "latest"
     },
-    "storageAccountName": "[parameters('storageAccountPrefix')]",
     "dataDiskSize": 512,
-    "osImage": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/img/os-disk-img.vhd')]",
-    "hostName": "[concat(parameters('dnsName'), '-vm')]",
-    "templateURLBase": "[concat(parameters('artifactsBaseUrl'),'/')]",
+    "hostName": "[concat(parameters('clusterName'), '-vm')]",
+    "baseUrl": "[concat(parameters('artifactsBaseUrl'),'/')]",
     "startScriptName": "azure-dbx-san-start.sh",
-    "startScriptURL": "[concat(variables('templateURLBase'),variables('startScriptName'))]",
-    "templateUrlVnet": "[concat(variables('templateURLBase'),'vnet-',parameters('vnetNewOrExisting'),'.json')]",
+    "startScriptUrl": "[concat(variables('baseUrl'),variables('startScriptName'))]",
+    "templateUrlVnet": "[concat(variables('baseUrl'),'vnet-',parameters('vnetNewOrExisting'),'.json')]",
+    "templateUrlPublicIP": "[concat(variables('baseUrl'),'publicIP-',parameters('publicIPAddressNewOrExisting'),'.json')]",
+    "publicIPID": "[resourceId(parameters('publicIPAddressResourceGroup'), 'Microsoft.Network/publicIPAddresses', parameters('publicIPAddressName'))]",
     "vnetID": "[resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
     "subnetID": "[concat(variables('vnetID'), '/subnets/', parameters('subnetName'))]",
     "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
     "linuxConfiguration_sshPublicKey": {
-        "disablePasswordAuthentication": "true",
-        "ssh": {
-            "publicKeys": [
-                {
-                    "path": "[variables('sshKeyPath')]",
-                    "keyData": "[parameters('adminSshPublicKey')]"
-                }
-            ]
-        }
+      "disablePasswordAuthentication": "true",
+      "ssh": {
+        "publicKeys": [
+          {
+            "path": "[variables('sshKeyPath')]",
+            "keyData": "[parameters('adminSshPublicKey')]"
+          }
+        ]
+      }
     },
     "linuxConfiguration_password": { },
     "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authType')))]"
@@ -250,35 +233,44 @@
       }
     },
     {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountNameStandard')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "accountType": "[variables('storageAccountTypeStandard')]"
+      }
+    },
+    {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
       "name": "vnet",
       "properties": {
-          "mode": "Incremental",
-          "templateLink": {
-              "uri": "[variables('templateUrlVnet')]",
-              "contentVersion": "1.0.0.0"
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateUrlVnet')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
           },
-          "parameters": {
-              "location": {
-                  "value": "[parameters('location')]"
-              },
-              "vnetName": {
-                  "value": "[parameters('vnetName')]"
-              },
-              "vnetResourceGroup": {
-                  "value": "[parameters('vnetResourceGroup')]"
-              },
-              "vnetAddressSpace": {
-                  "value": "[parameters('vnetAddressSpace')]"
-              },
-              "subnetName": {
-                  "value": "[parameters('subnetName')]"
-              },
-              "subnetAddressSpace": {
-                  "value": "[parameters('subnetAddressSpace')]"
-              }
+          "vnetName": {
+            "value": "[parameters('vnetName')]"
+          },
+          "vnetResourceGroup": {
+            "value": "[parameters('vnetResourceGroup')]"
+          },
+          "vnetAddressSpace": {
+            "value": "[parameters('vnetAddressSpace')]"
+          },
+          "subnetName": {
+            "value": "[parameters('subnetName')]"
+          },
+          "subnetAddressSpace": {
+            "value": "[parameters('subnetAddressSpace')]"
           }
+        }
       }
     },
     {
@@ -292,26 +284,42 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "dbx-ip",
-      "location": "[parameters('location')]",
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "name": "publicIP",
       "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "idleTimeoutInMinutes": 4,
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsName')]"
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('templateUrlPublicIP')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "publicIPAddressName": {
+            "value": "[parameters('publicIPAddressName')]"
+          },
+          "publicIPAddressType": {
+            "value": "Dynamic"
+          },
+          "publicIPAddressDomainNameLabel": {
+            "value": "[parameters('publicIPAddressDomainNameLabel')]"
+          },
+          "publicIPAddressResourceGroup": {
+            "value": "[parameters('publicIPAddressResourceGroup')]"
+          }
         }
       }
     },
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "nic0",
+      "name": "[concat(variables('hostName'),'-nic0')]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Resources/deployments/', 'vnet')]",
-        "[concat('Microsoft.Network/publicIPAddresses/', 'dbx-ip')]"
+        "[concat('Microsoft.Resources/deployments/', 'publicIP')]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -321,7 +329,7 @@
               "privateIPAllocationMethod": "Static",
               "privateIPAddress": "[concat(variables('subnetAddrComponents')[0],'.',variables('subnetAddrComponents')[1],'.',variables('subnetAddrComponents')[2],'.',variables('startPrivateIPLast'))]",
               "publicIPAddress": {
-                "id": "[concat(resourceGroup().id, '/providers/Microsoft.Network/publicIPAddresses/', 'dbx-ip')]"
+                "id": "[variables('publicIPID')]"
               },
               "subnet": {
                 "id": "[reference('Microsoft.Resources/deployments/vnet','2015-01-01').outputs.subnetID.value]"
@@ -334,7 +342,7 @@
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat('nic', copyindex(1))]",
+      "name": "[concat(variables('hostName'),'-nic',copyindex(1))]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Resources/deployments/', 'vnet')]"
@@ -359,13 +367,13 @@
       }
     },
     {
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('hostName'),'-0')]",
-      "apiVersion": "2015-06-15",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', 'nic0')]"
+        "[concat('Microsoft.Network/networkInterfaces/', variables('hostName'), '-nic0')]"
       ],
       "plan": {
         "name": "[variables('mktSKU')]",
@@ -390,7 +398,7 @@
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-osdisk.vhd')]"
+              "uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-0','-osdisk.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -401,7 +409,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 0,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk0.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-0','-datadisk0.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -411,7 +419,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 1,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk1.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-0','-datadisk1.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -421,7 +429,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 2,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk2.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-0','-datadisk2.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -431,7 +439,7 @@
               "diskSizeGB": "[variables('dataDiskSize')]",
               "lun": 3,
               "vhd": {
-                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'), '-datadisk3.vhd')]"
+                "Uri": "[concat('http://', variables('storageAccountName'), '.blob.core.windows.net/vhds/', variables('hostName'),'-0','-datadisk3.vhd')]"
               },
               "caching": "None",
               "createOption": "Empty"
@@ -441,20 +449,26 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces','nic0')]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('hostName'),'-nic0'))]"
             }
           ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',variables('storageAccountNameStandard'),'.blob.core.windows.net')]"
+          }
         }
       }
     },
     {
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('hostName'),'-',copyindex(1))]",
-      "apiVersion": "2015-06-15",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', 'nic', copyindex(1))]"
+        "[concat('Microsoft.Network/networkInterfaces/', variables('hostName'), '-nic', copyindex(1))]"
       ],
       "copy": {
         "name": "vmLoop",
@@ -534,9 +548,15 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat('nic',copyindex(1)))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('hostName'),'-nic',copyindex(1)))]"
             }
           ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',variables('storageAccountNameStandard'),'.blob.core.windows.net')]"
+          }
         }
       }
     },
@@ -555,14 +575,28 @@
       "properties": {
         "publisher": "Microsoft.OSTCExtensions",
         "type": "CustomScriptForLinux",
-        "typeHandlerVersion": "1.2",
+        "typeHandlerVersion": "1.3",
         "settings": {
           "fileUris": [
-            "[variables('startScriptURL')]"
+            "[variables('startScriptUrl')]"
           ],
-          "commandToExecute": "[concat('bash ',variables('startScriptName'),' ',reference(concat('nic0')).ipConfigurations[0].properties.privateIPAddress,' ',parameters('dnsName'),' ',parameters('vmCount'),' ',copyindex() )]"
+          "commandToExecute": "[concat('bash ',variables('startScriptName'),' ',reference(concat(variables('hostName'),'-nic0')).ipConfigurations[0].properties.privateIPAddress,' ',parameters('clusterName'),' ',parameters('vmCount'),' ',copyindex() )]"
         }
       }
     }
-  ]
+  ],
+  "outputs": {
+    "fqdn": {
+      "value": "[reference('publicIP').outputs.fqdn.value]",
+      "type": "string"
+    },
+    "sshCommand": {
+      "value": "[concat('ssh ', parameters('adminUserName'), '@', reference('publicIP').outputs.fqdn.value)]",
+      "type": "string"
+    },
+    "xdadmUrl": {
+      "value": "[concat('https://', reference('publicIP').outputs.fqdn.value, ':2400/xdadm')]",
+      "type": "string"
+    }
+  }
 }

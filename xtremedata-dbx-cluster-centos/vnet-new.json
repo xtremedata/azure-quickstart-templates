@@ -1,75 +1,120 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "location": {
-            "type": "string",
-            "metadata": {
-                "description": "Location for dbX cluster"
-            }
-        },
-        "vnetName": {
-            "type": "string",
-            "metadata": {
-                "description": "Virtual Network name"
-            }
-        },
-        "vnetResourceGroup": {
-            "type": "string",
-            "metadata": {
-                "description": "Virtual Network Resource Group"
-            }
-        },
-        "vnetAddressSpace": {
-            "type": "string",
-             "metadata": {
-                "description": "Virtual Network Address Prefix (i.e. CIDR)"
-            }
-        },
-        "subnetName": {
-            "type": "string",
-             "metadata": {
-                "description": "all dbX nodes will be deployed into this subnet within the Virtual Network"
-            }
-        },
-        "subnetAddressSpace": {
-            "type": "string",
-             "metadata": {
-                "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
-            }
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for dbX cluster"
+      }
     },
-    "variables": {
-        "vnetID": "[resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
-        "subnetID": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]"
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network name"
+      }
     },
-    "resources": [
-        {
-            "apiVersion": "2015-06-15",
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[parameters('vnetName')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('vnetAddressSpace')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[parameters('subnetName')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnetAddressSpace')]"
-                        }
-                    }
-                ]
-            }
-        }
-    ],
-    "outputs": {
-        "subnetID": {
-            "value": "[variables('subnetID')]",
-            "type": "string"
-        }
+    "vnetResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network Resource Group"
+      }
+    },
+    "vnetAddressSpace": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network Address Prefix (i.e. CIDR)"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "all dbX nodes will be deployed into this subnet within the Virtual Network"
+      }
+    },
+    "subnetAddressSpace": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
+      }
     }
+  },
+  "variables": {
+    "vnetID": "[resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+    "subnetID": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]",
+    "subnetNetworkSecurityGroupName": "[concat(parameters('subnetName'),'-','nsg')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('subnetNetworkSecurityGroupName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ssh_rule",
+            "properties": {
+              "description": "Allow SSH access",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "xdadm_rule",
+            "properties": {
+              "description": "Allow HTTPS access to xdadm",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "2400",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 102,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('vnetName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('subnetNetworkSecurityGroupName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetAddressSpace')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[parameters('subnetName')]",
+            "properties": {
+              "addressPrefix": "[parameters('subnetAddressSpace')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('subnetNetworkSecurityGroupName'))]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "subnetID": {
+      "value": "[variables('subnetID')]",
+      "type": "string"
+    }
+  }
 }

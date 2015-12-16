@@ -1,204 +1,234 @@
 {
-    "handler": "Microsoft.Compute.MultiVm",
-    "version": "0.0.1-preview",
-    "parameters": {
-        "basics": [
-            {
-                "name": "clusterName",
-                "type": "Microsoft.Common.TextBox",
-                "label": "dbX Cluster Name",
-                "toolTip": "dbX Cluster Name (vm hostname prefix, etc.): 3 to 24 alphanumeric characters and dashes",
-                "constraints": {
-                    "required": true,
-                    "regex": "^[a-z0-9-]{3,24}$",
-                    "validationMessage": "dbX Cluster Name must be between 3 and 24 characters and can contain only lower case letters, numbers, and dashes."
-                }
-            },
-            {
-                "name": "sshUser",
-                "type": "Microsoft.Common.DropDown",
-                "label": "Admin user name (fixed)",
-                "defaultValue": "azure-user",
-                "toolTip": "user 'azure-user' must be used to administer dbX",
-                "constraints": {
-                    "allowedValues": [
-                        { "label": "azure-user", "value": "azure-user" }
-                    ]
-                }
-            },
-            {
-                "name": "sshCredentials",
-                "type": "Microsoft.Compute.CredentialsCombo",
-                "label": {
-                    "authenticationType": "Authentication type",
-                    "password": "Password",
-                    "confirmPassword": "Confirm password",
-                    "sshPublicKey": "SSH public key"
-                },
-                "toolTip": {
-                    "authenticationType": "OpenSSH public key or Password",
-                    "password": "Password",
-                    "sshPublicKey": "OpenSSH public key"
-                },
-                "constraints": {
-                    "required": true
-                },
-                "osPlatform": "Linux"
-            }
-        ],
-        "steps": [
-            {
-                "name": "clusterConfig",
-                "label": "dbX cluster settings",
-                "subLabel": {
-                    "preValidation": "Configure dbX cluster settings",
-                    "postValidation": "Done"
-                },
-                "bladeTitle": "dbX cluster settings",
-                "elements": [
-                    {
-                        "name": "vmCount",
-                        "type": "Microsoft.Common.DropDown",
-                        "label": "Number of nodes",
-                        "toolTip": "Total number of nodes in the dbX cluster",
-                        "constraints": {
-                            "allowedValues": [
-                                { "label": "2", "value": 2 },
-                                { "label": "4", "value": 4 },
-                                { "label": "6", "value": 6 },
-                                { "label": "8", "value": 8 },
-                                { "label": "10", "value": 10 }
-                            ]
-                        },
-                        "defaultValue": "2"
-                    },
-                    {
-                        "name": "vmSize",
-                        "type": "Microsoft.Compute.SizeSelector",
-                        "label": "Virtual machine size",
-                        "toolTip": "VM Size for each dbX node",
-                        "recommendedSizes": [
-                            "Standard_DS14",
-                            "Standard_DS13",
-                            "Standard_DS12"
-                        ],
-                        "constraints": {
-                            "allowedSizes": [
-                                "Standard_DS14",
-                                "Standard_DS13",
-                                "Standard_DS12"
-                            ]
-                        },
-                        "osPlatform": "Linux",
-                        "imageReference": {
-                            "publisher": "xtremedata",
-                            "offer": "dbx",
-                            "sku": "dbx15001mnt",
-                            "version": "latest"
-                        },
-                        "count": "[steps('clusterConfig').vmCount]"
-                    },
-                    {
-                        "name": "multiStorageAccount",
-                        "type": "Microsoft.Storage.MultiStorageAccountCombo",
-                        "label": "Storage account",
-                        "label": {
-                            "prefix": "Storage account prefix",
-                            "type": "Storage account type"
-                        },
-                        "toolTip": {
-                            "prefix": "Storage account for the disks of the virtual machine",
-                            "type": "Storage account type, Premium_LRS strongly recommended"
-                        },
-                        "defaultValue": {
-                            "prefix": "[basics('clusterName')]",
-                            "type": "Premium_LRS"
-                        },
-                        "constraints": {
-                            "allowedTypes": [
-                                "Premium_LRS"
-                            ]
-                        },
-                        "count": 1
-                    },
-                    {
-                        "name": "dnsPrefix",
-                        "type": "Microsoft.Common.TextBox",
-                        "label": "DNS prefix (host)",
-                        "toolTip": "Globally unique domain name prefix must be between 3 and 50 characters long and can contain only dashes, numbers, and lowercase letters. The domain name suffix (e.g. westus.cloudapp.azure.com) will be automatically updated based on the selected location.",
-                        "defaultValue": "[basics('clusterName')]",
-                        "constraints": {
-                            "required": true,
-                            "regex": "^[a-z0-9-]{3,50}$",
-                            "validationMessage": "Globally unique domain name prefix must be between 3 and 50 characters long and can contain only dashes, numbers, and lowercase letters. The domain name suffix (e.g. westus.cloudapp.zure.com) will be automatically updated based on the selected location."
-                        }
-                    },
-                    {
-                        "name": "virtualNetwork",
-                        "type": "Microsoft.Network.VirtualNetworkCombo",
-                        "label": {
-                            "virtualNetwork": "Virtual network",
-                            "subnets": "Subnets"
-                        },
-                        "toolTip": {
-                            "virtualNetwork": "Virtual machine can be deployed into a new or existing virtual network",
-                            "subnets": "For a new virtual network, the deployment will create one subnet"
-                        },
-                        "defaultValue": {
-                            "name": "vnet-dbx",
-                            "addressPrefixSize": "/16"
-                        },
-                        "constraints": {
-                            "minAddressPrefixSize": "/16"
-                        },
-                        "subnets": {
-                            "subnet1": {
-                                "label": "Subnet 1",
-                                "defaultValue": {
-                                    "name": "subnet-dbx",
-                                    "addressPrefixSize": "/24"
-                                },
-                                "constraints": {
-                                    "minAddressPrefixSize": "/26",
-                                    "minAddressCount": "[steps('clusterConfig').vmCount]",
-                                    "requireContiguousAddresses": false
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "name": "ipOffset",
-                        "type": "Microsoft.Common.TextBox",
-                        "label": "Starting IP address offset",
-                        "toolTip": "Offset of the head node's private IP address within the Subnet",
-                        "defaultValue": "10",
-                        "constraints": {
-                            "required": true,
-                            "regex": "^[0-9]{1,4}$",
-                            "validationMessage": "only numeric value is allowed"
-                        }
-                    }
-                ]
-            }
-        ],
-        "outputs": {
-            "location": "[location()]",
-            "adminUserName": "[basics('sshUser')]",
-            "adminPassword": "[basics('sshCredentials').password]",
-            "adminSshPublicKey": "[basics('sshCredentials').sshPublicKey]",
-            "authType": "[basics('sshCredentials').authenticationType]",
-            "dnsName": "[steps('clusterConfig').dnsPrefix]",
-            "vmSize": "[steps('clusterConfig').vmSize]",
-            "vmCount": "[steps('clusterConfig').vmCount]",
-            "storageAccountPrefix": "[steps('clusterConfig').multiStorageAccount.prefix]",
-            "storageAccountType": "[steps('clusterConfig').multiStorageAccount.type]",
-            "vnetNewOrExisting": "[steps('clusterConfig').virtualNetwork.newOrExisting]",
-            "vnetResourceGroup": "[steps('clusterConfig').virtualNetwork.resourceGroup]",
-            "vnetName": "[steps('clusterConfig').virtualNetwork.name]",
-            "vnetAddressSpace": "[steps('clusterConfig').virtualNetwork.addressPrefix]",
-            "subnetName": "[steps('clusterConfig').virtualNetwork.subnets.subnet1.name]",
-            "subnetAddressSpace": "[steps('clusterConfig').virtualNetwork.subnets.subnet1.addressPrefix]",
-            "ipOffset": "[steps('clusterConfig').ipOffset]"
+  "handler": "Microsoft.Compute.MultiVm",
+  "version": "0.0.1-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "clusterName",
+        "type": "Microsoft.Common.TextBox",
+        "label": "dbX Cluster Name",
+        "toolTip": "dbX Cluster Name used as the VM hostname prefix (3 to 24 lower-case alphanumeric characters)",
+        "constraints": {
+          "required": true,
+          "regex": "^[a-z0-9]{3,24}$",
+          "validationMessage": "dbX Cluster Name must be between 3 and 24 characters and can contain only lower-case alphanumeric characters."
         }
+      },
+      {
+        "name": "sshUser",
+        "type": "Microsoft.Common.DropDown",
+        "label": "Static Admin Username",
+        "defaultValue": "azure-user",
+        "toolTip": "dbX Cluster requires user 'azure-user' as the admin user.",
+        "constraints": {
+          "allowedValues": [
+            {
+              "label": "azure-user",
+              "value": "azure-user"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sshCredentials",
+        "type": "Microsoft.Compute.CredentialsCombo",
+        "label": {
+          "authenticationType": "Authentication type",
+          "password": "Password",
+          "confirmPassword": "Confirm password",
+          "sshPublicKey": "SSH public key"
+        },
+        "toolTip": {
+          "authenticationType": "OpenSSH public key or Password",
+          "password": "Password",
+          "sshPublicKey": "OpenSSH public key"
+        },
+        "constraints": {
+          "required": true
+        },
+        "osPlatform": "Linux"
+      }
+    ],
+    "steps": [
+      {
+        "name": "clusterConfig",
+        "label": "dbX Cluster Settings",
+        "subLabel": {
+          "preValidation": "Configure dbX cluster settings",
+          "postValidation": "Done"
+        },
+        "bladeTitle": "dbX Cluster Settings",
+        "elements": [
+          {
+            "name": "vmCount",
+            "type": "Microsoft.Common.DropDown",
+            "label": "Number of nodes",
+            "toolTip": "Total number of nodes in the dbX cluster (includes both the data nodes and the head node)",
+            "constraints": {
+              "allowedValues": [
+                {
+                  "label": "2",
+                  "value": 2
+                },
+                {
+                  "label": "4",
+                  "value": 4
+                },
+                {
+                  "label": "6",
+                  "value": 6
+                },
+                {
+                  "label": "8",
+                  "value": 8
+                },
+                {
+                  "label": "10",
+                  "value": 10
+                }
+              ]
+            },
+            "defaultValue": "2"
+          },
+          {
+            "name": "vmSize",
+            "type": "Microsoft.Compute.SizeSelector",
+            "label": "Virtual machine size",
+            "toolTip": "VM Size for each dbX node",
+            "recommendedSizes": [
+              "Standard_DS12",
+              "Standard_DS13",
+              "Standard_DS14"
+            ],
+            "constraints": {
+              "allowedSizes": [
+                "Standard_DS12",
+                "Standard_DS13",
+                "Standard_DS14"
+              ]
+            },
+            "osPlatform": "Linux",
+            "imageReference": {
+              "publisher": "xtremedata",
+              "offer": "dbx",
+              "sku": "dbx15001mnt",
+              "version": "latest"
+            },
+            "count": "[steps('clusterConfig').vmCount]"
+          },
+          {
+            "name": "multiStorageAccount",
+            "type": "Microsoft.Storage.MultiStorageAccountCombo",
+            "label": "Storage account",
+            "label": {
+              "prefix": "Storage account prefix",
+              "type": "Storage account type"
+            },
+            "toolTip": {
+              "prefix": "Storage account for the disks of the virtual machine",
+              "type": "Storage account type, Premium_LRS strongly recommended"
+            },
+            "defaultValue": {
+              "prefix": "[basics('clusterName')]",
+              "type": "Premium_LRS"
+            },
+            "constraints": {
+              "allowedTypes": [
+                "Premium_LRS"
+              ]
+            },
+            "count": 2
+          },
+          {
+            "name": "publicIP",
+            "type": "Microsoft.Network.PublicIpAddressCombo",
+            "label": {
+              "publicIpAddress": "Public IP address name",
+              "domainNameLabel": "Domain name label"
+            },
+            "toolTip": {
+              "publicIpAddress": "Name of the public IP address object",
+              "domainNameLabel": "DNS prefix to use for the public IP address (e.g. [dnsPrefix].region.cloudapp.azure.com)"
+            },
+            "defaultValue": {
+              "publicIpAddressName": "[basics('clusterName')]",
+              "domainNameLabel": "[basics('clusterName')]"
+            },
+            "options": {
+              "hideNone": true,
+              "hideDomainNameLabel": false
+            }
+          },
+          {
+            "name": "virtualNetwork",
+            "type": "Microsoft.Network.VirtualNetworkCombo",
+            "label": {
+              "virtualNetwork": "Virtual network",
+              "subnets": "Subnets"
+            },
+            "toolTip": {
+              "virtualNetwork": "Virtual machine can be deployed into a new or existing virtual network",
+              "subnets": "For a new virtual network, the deployment will create one subnet"
+            },
+            "defaultValue": {
+              "name": "vnet-dbx",
+              "addressPrefixSize": "/16"
+            },
+            "constraints": {
+              "minAddressPrefixSize": "/16"
+            },
+            "subnets": {
+              "subnet1": {
+                "label": "Subnet 1",
+                "defaultValue": {
+                  "name": "subnet-dbx",
+                  "addressPrefixSize": "/24"
+                },
+                "constraints": {
+                  "minAddressPrefixSize": "/26",
+                  "minAddressCount": "[steps('clusterConfig').vmCount]",
+                  "requireContiguousAddresses": false
+                }
+              }
+            }
+          },
+          {
+            "name": "ipOffset",
+            "type": "Microsoft.Common.TextBox",
+            "label": "Starting IP address offset",
+            "toolTip": "Offset of the head node's private IP address within the subnet",
+            "defaultValue": "10",
+            "constraints": {
+              "required": true,
+              "regex": "^[0-9]{1,4}$",
+              "validationMessage": "Starting IP address offset must be a numeric value"
+            }
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "location": "[location()]",
+      "clusterName": "[basics('clusterName')]",
+      "adminUserName": "[basics('sshUser')]",
+      "adminPassword": "[basics('sshCredentials').password]",
+      "adminSshPublicKey": "[basics('sshCredentials').sshPublicKey]",
+      "authType": "[basics('sshCredentials').authenticationType]",
+      "publicIPAddressNewOrExisting": "[steps('clusterConfig').publicIP.newOrExistingOrNone]",
+      "publicIPAddressResourceGroup": "[steps('clusterConfig').publicIP.resourceGroup]",
+      "publicIPAddressName": "[steps('clusterConfig').publicIP.name]",
+      "publicIPAddressDomainNameLabel": "[steps('clusterConfig').publicIP.domainNameLabel]",
+      "vmSize": "[steps('clusterConfig').vmSize]",
+      "vmCount": "[steps('clusterConfig').vmCount]",
+      "storageAccountPrefix": "[steps('clusterConfig').multiStorageAccount.prefix]",
+      "storageAccountType": "[steps('clusterConfig').multiStorageAccount.type]",
+      "vnetNewOrExisting": "[steps('clusterConfig').virtualNetwork.newOrExisting]",
+      "vnetResourceGroup": "[steps('clusterConfig').virtualNetwork.resourceGroup]",
+      "vnetName": "[steps('clusterConfig').virtualNetwork.name]",
+      "vnetAddressSpace": "[steps('clusterConfig').virtualNetwork.addressPrefix]",
+      "subnetName": "[steps('clusterConfig').virtualNetwork.subnets.subnet1.name]",
+      "subnetAddressSpace": "[steps('clusterConfig').virtualNetwork.subnets.subnet1.addressPrefix]",
+      "ipOffset": "[steps('clusterConfig').ipOffset]"
     }
+  }
 }
