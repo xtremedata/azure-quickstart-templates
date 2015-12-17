@@ -186,8 +186,8 @@
                 },
                 "constraints": {
                   "minAddressPrefixSize": "/26",
-                  "minAddressCount": "[steps('clusterConfig').vmCount]",
-                  "requireContiguousAddresses": false
+                  "minAddressCount": "10",
+                  "requireContiguousAddresses": true
                 }
               }
             }
@@ -200,8 +200,8 @@
             "defaultValue": "10",
             "constraints": {
               "required": true,
-              "regex": "^[0-9]{1,4}$",
-              "validationMessage": "Starting IP address offset must be a numeric value"
+              "regex": "^([4-9]|[1-9][0-9]{1,3})$",
+              "validationMessage": "Starting IP address offset must be a numeric value greater than 3"
             }
           }
         ]
