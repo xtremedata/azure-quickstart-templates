@@ -373,6 +373,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountNameStandard'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('hostName'), '-nic0')]"
       ],
       "plan": {
@@ -468,6 +469,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountNameStandard'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('hostName'), '-nic', copyindex(1))]"
       ],
       "copy": {
