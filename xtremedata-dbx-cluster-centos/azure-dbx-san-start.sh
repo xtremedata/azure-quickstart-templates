@@ -31,7 +31,7 @@ echo $myip `hostname` >> /etc/hosts
 umount /mnt/resource || true
 
 rm -f ~xdcrm/tmp/my_config.out
-/etc/init.d/dbx_checkin stop || true
+/etc/init.d/dbx_checkin stop &>/dev/null || true
 
 su - xdcrm -c "xdcluster setup static --head=$headip --cluster='$clustername' --devices=udev +y +force_config && xdcluster checkin"
 
@@ -56,7 +56,7 @@ function Exit {
 }
 
 echo "*** waiting for $data_nodes nodes *** `date`"
-declare -i nn=240
+declare -i nn=$((60*90/5))
 while [ "$(/opt/xdcluster/bin/getnodes.sh | wc -l)" -ne $data_nodes ]; do
   sleep 5
   [ $((--nn)) -gt 0 ] || Exit "TIMEOUT waiting for nodes: have $(/opt/xdcluster/bin/getnodes.sh | wc -l), want $data_nodes"
