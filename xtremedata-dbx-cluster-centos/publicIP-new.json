@@ -35,7 +35,7 @@
     },
     "variables": {
         "DomainLabel1":"[parameters('publicIPAddressDomainNameLabel')]",
-        "DomainLabel0":"[concat('dbx-',uniqueString(resourceGroup().id, deployment().name))]",
+        "DomainLabel0":"[concat('dbx-',uniqueString(resourceGroup().id, deployment().name, parameters('publicIPAddressName')))]",
         "DomainLabelLen":"[length(parameters('publicIPAddressDomainNameLabel'))]",
         "DomainLabelSwitch":"[replace(replace(replace(replace(replace(replace(replace(replace(substring(string(variables('DomainLabelLen')),0,1),'2','1'),'3','1'),'4','1'),'5','1'),'6','1'),'7','1'),'8','1'),'9','1')]",
         "publicIPAddressDomainNameLabel":"[variables(concat('DomainLabel', variables('DomainLabelSwitch')))]"
