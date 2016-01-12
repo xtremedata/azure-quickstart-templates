@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #
-# Usage:  $0 [-v] <headip> <clustername> <number-of-nodes> <this-node-index>
+# Usage:  $0 [-v] [-x] <headip> <clustername> <number-of-nodes> <this-node-index>
+#    -x:  do not automatically initialize & start the cluster
 #
 set -e
 
@@ -9,6 +10,7 @@ logger -t azure-dbx-san-start "started, args: $*"
 echo "dbx-san-start Started: $*. `date`"
 
 [ $1 = '-v' ] && shift || quiet='-q'
+[ $1 = '-x' ] && { shift; nostart=y; }
 
 headip=$1
 clustername=$2
@@ -47,6 +49,7 @@ adm_pwd="$(getent shadow $login_user | awk -F: '{print $2}')"
 
 
 ###### start dbx on head ######
+[ -z "$nostart" ] || exit 0
 
 function Exit {
     msg="$1"  # empty = SUCCESS
