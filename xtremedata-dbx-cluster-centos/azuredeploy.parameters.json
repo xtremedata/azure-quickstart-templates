@@ -1,22 +1,62 @@
 {
-  "location": { "value": "eastus" },
-  "clusterName": { "value": "testdbx05" },
-  "adminUserName": { "value": "azure-user" },
-  "adminPassword": { "value": "MSrocks@2015" },
-  "authType": { "value": "password" },
-  "publicIPAddressNewOrExisting": { "value": "new" },
-  "publicIPAddressResourceGroup": { "value": "testdbx05" },
-  "publicIPAddressName": { "value": "testdbx05" },
-  "publicIPAddressDomainNameLabel": { "value": "testdbx05" },
-  "vmSize": { "value": "Standard_DS13" },
-  "vmCount": { "value": 3 },
-  "storageAccountPrefix": { "value": "testdbx05" },
-  "storageAccountType": { "value": "Premium_LRS" },
-  "vnetNewOrExisting": { "value": "new" },
-  "vnetResourceGroup": { "value": "testdbx05" },
-  "vnetName": { "value": "vnet-dbx" },
-  "vnetAddressSpace": { "value": "10.0.0.0/16" },
-  "subnetName": { "value": "subnet-dbx" },
-  "subnetAddressSpace": { "value": "10.0.0.0/24" },
-  "ipOffset": { "value": "10" }
+  "location": {
+    "value": "eastus"
+  },
+  "clusterName": {
+    "value": "testdbx01"
+  },
+  "adminUserName": {
+    "value": "azure-user"
+  },
+  "adminPassword": {
+    "value": "MSrocks@2016"
+  },
+  "authType": {
+    "value": "password"
+  },
+  "publicIPAddressNewOrExisting": {
+    "value": "new"
+  },
+  "publicIPAddressResourceGroup": {
+    "value": "testdbx01"
+  },
+  "publicIPAddressName": {
+    "value": "testdbx01"
+  },
+  "publicIPAddressDomainNameLabel": {
+    "value": "testdbx01"
+  },
+  "vmSize": {
+    "value": "Standard_DS12"
+  },
+  "vmCount": {
+    "value": 2
+  },
+  "storageAccountPrefix": {
+    "value": "testdbx01"
+  },
+  "storageAccountType": {
+    "value": "Premium_LRS"
+  },
+  "vnetNewOrExisting": {
+    "value": "new"
+  },
+  "vnetResourceGroup": {
+    "value": "testdbx01"
+  },
+  "vnetName": {
+    "value": "vnet-dbx"
+  },
+  "vnetAddressSpace": {
+    "value": "10.0.0.0/16"
+  },
+  "subnetName": {
+    "value": "subnet-dbx"
+  },
+  "subnetAddressSpace": {
+    "value": "10.0.0.0/24"
+  },
+  "subnetStartAddress": {
+    "value": "10.0.0.4"
+  }
 }

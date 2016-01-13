@@ -139,11 +139,11 @@
         "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
       }
     },
-    "ipOffset": {
+    "subnetStartAddress": {
       "type": "string",
-      "defaultValue": "10",
+      "defaultValue": "10.0.0.10",
       "metadata": {
-        "description": "Offset of the head node's private IP address within the Subnet"
+        "description": "Starting IP address of the dbX cluster in the subnet"
       }
     },
     "publicIPAddressNewOrExisting": {
@@ -181,8 +181,8 @@
     "storageAccountNameStandard": "[concat(parameters('storageAccountPrefix'),'2')]",
     "storageAccountTypeStandard": "Standard_LRS",
     "addrSplitDelim": [ ".", "/" ],
-    "subnetAddrComponents": "[split(parameters('subnetAddressSpace'),variables('addrSplitDelim'))]",
-    "startPrivateIPLast": "[add(int(variables('subnetAddrComponents')[3]),int(parameters('ipOffset')))]",
+    "subnetAddrSpComponents": "[split(parameters('subnetAddressSpace'),variables('addrSplitDelim'))]",
+    "subnetStartAddrComponents": "[split(parameters('subnetStartAddress'),variables('addrSplitDelim'))]",
     "availabilitySetSettings": {
       "name": "[concat(parameters('clusterName'),'-availset')]",
       "faultDomainCount": "3",
@@ -244,7 +244,7 @@
     {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
-      "name": "vnet",
+      "name": "[concat('dbx-vnet-',deployment().name)]",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -286,7 +286,7 @@
     {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
-      "name": "publicIP",
+      "name": "[concat('dbx-pubIP-',deployment().name)]",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -318,8 +318,8 @@
       "name": "[concat(variables('hostName'),'-nic0')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', 'vnet')]",
-        "[concat('Microsoft.Resources/deployments/', 'publicIP')]"
+        "[concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name)]",
+        "[concat('Microsoft.Resources/deployments/dbx-pubIP-',deployment().name)]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -327,12 +327,12 @@
             "name": "ip1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(variables('subnetAddrComponents')[0],'.',variables('subnetAddrComponents')[1],'.',variables('subnetAddrComponents')[2],'.',variables('startPrivateIPLast'))]",
+              "privateIPAddress": "[parameters('subnetStartAddress')]",
               "publicIPAddress": {
                 "id": "[variables('publicIPID')]"
               },
               "subnet": {
-                "id": "[reference('Microsoft.Resources/deployments/vnet','2015-01-01').outputs.subnetID.value]"
+                "id": "[reference(concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name),'2015-01-01').outputs.subnetID.value]"
               }
             }
           }
@@ -345,7 +345,7 @@
       "name": "[concat(variables('hostName'),'-nic',copyindex(1))]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/', 'vnet')]"
+        "[concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name)]"
       ],
       "copy": {
         "name": "nicLoop",
@@ -357,9 +357,9 @@
             "name": "ip1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat(variables('subnetAddrComponents')[0],'.',variables('subnetAddrComponents')[1],'.',variables('subnetAddrComponents')[2],'.', add(int(variables('startPrivateIPLast')),copyindex(1)))]",
+              "privateIPAddress": "[concat(variables('subnetStartAddrComponents')[0],'.',variables('subnetStartAddrComponents')[1],'.', add(int(variables('subnetStartAddrComponents')[2]), div(add(int(variables('subnetStartAddrComponents')[3]),copyindex(1)),256)) ,'.', mod(add(int(variables('subnetStartAddrComponents')[3]),copyindex(1)),256))]",
               "subnet": {
-                "id": "[reference('Microsoft.Resources/deployments/vnet','2015-01-01').outputs.subnetID.value]"
+                "id": "[reference(concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name),'2015-01-01').outputs.subnetID.value]"
               }
             }
           }
@@ -589,15 +589,15 @@
   ],
   "outputs": {
     "fqdn": {
-      "value": "[reference('publicIP').outputs.fqdn.value]",
+      "value": "[reference(concat('dbx-pubIP-',deployment().name)).outputs.fqdn.value]",
       "type": "string"
     },
     "sshCommand": {
-      "value": "[concat('ssh ', parameters('adminUserName'), '@', reference('publicIP').outputs.fqdn.value)]",
+      "value": "[concat('ssh ', parameters('adminUserName'), '@', reference(concat('dbx-pubIP-',deployment().name)).outputs.fqdn.value)]",
       "type": "string"
     },
     "xdadmUrl": {
-      "value": "[concat('https://', reference('publicIP').outputs.fqdn.value, ':2400/xdadm')]",
+      "value": "[concat('https://', reference(concat('dbx-pubIP-',deployment().name)).outputs.fqdn.value, ':2400/xdadm')]",
       "type": "string"
     }
   }
