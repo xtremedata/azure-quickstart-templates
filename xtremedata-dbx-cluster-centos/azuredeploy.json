@@ -199,6 +199,7 @@
     },
     "dataDiskSize": 512,
     "hostName": "[concat(parameters('clusterName'), '-vm')]",
+    "subdeploymentSuffix": "[uniqueString(deployment().name)]",
     "baseUrl": "[concat(parameters('artifactsBaseUrl'),'/')]",
     "startScriptName": "azure-dbx-san-start.sh",
     "startScriptUrl": "[concat(variables('baseUrl'),variables('startScriptName'))]",
@@ -244,7 +245,7 @@
     {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat('dbx-vnet-',deployment().name)]",
+      "name": "[concat('dbx-vnet-',variables('subdeploymentSuffix'))]",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -286,7 +287,7 @@
     {
       "apiVersion": "2015-01-01",
       "type": "Microsoft.Resources/deployments",
-      "name": "[concat('dbx-pubIP-',deployment().name)]",
+      "name": "[concat('dbx-pubIP-',variables('subdeploymentSuffix'))]",
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -318,8 +319,8 @@
       "name": "[concat(variables('hostName'),'-nic0')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name)]",
-        "[concat('Microsoft.Resources/deployments/dbx-pubIP-',deployment().name)]"
+        "[concat('Microsoft.Resources/deployments/dbx-vnet-',variables('subdeploymentSuffix'))]",
+        "[concat('Microsoft.Resources/deployments/dbx-pubIP-',variables('subdeploymentSuffix'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -332,7 +333,7 @@
                 "id": "[variables('publicIPID')]"
               },
               "subnet": {
-                "id": "[reference(concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name),'2015-01-01').outputs.subnetID.value]"
+                "id": "[reference(concat('Microsoft.Resources/deployments/dbx-vnet-',variables('subdeploymentSuffix')),'2015-01-01').outputs.subnetID.value]"
               }
             }
           }
@@ -345,7 +346,7 @@
       "name": "[concat(variables('hostName'),'-nic',copyindex(1))]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name)]"
+        "[concat('Microsoft.Resources/deployments/dbx-vnet-',variables('subdeploymentSuffix'))]"
       ],
       "copy": {
         "name": "nicLoop",
@@ -359,7 +360,7 @@
               "privateIPAllocationMethod": "Static",
               "privateIPAddress": "[concat(variables('subnetStartAddrComponents')[0],'.',variables('subnetStartAddrComponents')[1],'.', add(int(variables('subnetStartAddrComponents')[2]), div(add(int(variables('subnetStartAddrComponents')[3]),copyindex(1)),256)) ,'.', mod(add(int(variables('subnetStartAddrComponents')[3]),copyindex(1)),256))]",
               "subnet": {
-                "id": "[reference(concat('Microsoft.Resources/deployments/dbx-vnet-',deployment().name),'2015-01-01').outputs.subnetID.value]"
+                "id": "[reference(concat('Microsoft.Resources/deployments/dbx-vnet-',variables('subdeploymentSuffix')),'2015-01-01').outputs.subnetID.value]"
               }
             }
           }
@@ -493,15 +494,15 @@
   ],
   "outputs": {
     "fqdn": {
-      "value": "[reference(concat('dbx-pubIP-',deployment().name)).outputs.fqdn.value]",
+      "value": "[reference(concat('dbx-pubIP-',variables('subdeploymentSuffix'))).outputs.fqdn.value]",
       "type": "string"
     },
     "sshCommand": {
-      "value": "[concat('ssh ', parameters('adminUserName'), '@', reference(concat('dbx-pubIP-',deployment().name)).outputs.fqdn.value)]",
+      "value": "[concat('ssh ', parameters('adminUserName'), '@', reference(concat('dbx-pubIP-',variables('subdeploymentSuffix'))).outputs.fqdn.value)]",
       "type": "string"
     },
     "xdadmUrl": {
-      "value": "[concat('https://', reference(concat('dbx-pubIP-',deployment().name)).outputs.fqdn.value, ':2400/xdadm')]",
+      "value": "[concat('https://', reference(concat('dbx-pubIP-',variables('subdeploymentSuffix'))).outputs.fqdn.value, ':2400/xdadm')]",
       "type": "string"
     }
   }
