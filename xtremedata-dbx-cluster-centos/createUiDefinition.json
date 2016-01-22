@@ -157,6 +157,11 @@
             "options": {
               "hideNone": true,
               "hideDomainNameLabel": false
+            },
+            "constraints": {
+              "required": {
+                "domainNameLabel": true
+              }
             }
           },
           {
